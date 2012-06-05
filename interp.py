@@ -1,20 +1,29 @@
 ### this is a non-deterministic scheme intereperter  ###
+### WARNING: THIS INCREASES THE RECURSION LIMIT OF PYTHON--MAY SEGFAULT ###
 import sys
 
 rl = sys.getrecursionlimit()
 
-sys.setrecursionlimit(10*rl)
-
+#sys.setrecursionlimit(10*rl)
+#### The Interpterter ####
 
 from numbers import Number
 
 
 def evaluate(exprs, env, succeed, fail):
 	if len(exprs) > 1:
-		tmp =	analyze_seq(exprs)
-		tmp(env, succeed, fail)
+		try:
+			tmp =	analyze_seq(exprs)
+			tmp(env, succeed, fail)
+		except RuntimeError:
+			tmp = analyze_seq(exprs)
+			tmp(env, succeed, fail)
+			
 	else:
-		analyze_exp(exprs[0])(env, succeed, fail)
+		try:
+			analyze_exp(exprs[0])(env, succeed, fail)
+		except RuntimeError:
+			analyze_exp(exprs[0])(env, succeed, fail) 
 
 def analyze_seq(exprs):
 	def sequentially(a, b):
@@ -49,7 +58,10 @@ def self_evaluating(var):
 
 def self_eval(expr):
 	def exec_self(env, succeed, fail):
-		succeed(expr, fail)
+		try:
+			succeed(expr, fail)
+		except RuntimeError:
+			succeed(expr, fail)
 	return exec_self
 
 def quoted(expr):
@@ -58,7 +70,10 @@ def quoted(expr):
 def quote(expr):
 	qval = expr[1]
 	def exec_quote(env, succeed, fail):
-		succeed(qval, fail)
+		try:
+			succeed(qval, fail)
+		except RuntimeError:
+			succeed(qval, fail)
 	return exec_quote
 		
 def variable(expr):
@@ -66,8 +81,12 @@ def variable(expr):
 
 def var(expr):
 	def var_cont(env, succeed, fail):
-		if expr in env: succeed(env[expr], fail)
-		elif 'link' in env: var_cont(env['link'], succeed, fail)
+		if expr in env: 
+			try: succeed(env[expr], fail)
+			except RuntimeError: succeed(env[expr], fail)
+		elif 'link' in env: 
+			try: var_cont(env['link'], succeed, fail)
+			except RuntimeError: var_cont(env['link'], succeed, fail)
 		else: succeed("Error: Unknown Val", fail)
 	return var_cont
 
@@ -417,6 +436,11 @@ def cdr(e_list, env, succeed, fail):
 	evaluate([e_list[0]], env, retcon, fail)
 	succeed(evaluated_list[0][1], fail)
 
+def disp(e_list):
+	for var in e_list:
+		print var
+	return None 
+
 def lex(string):
 	prev = ''
 	for char in string:
@@ -457,7 +481,7 @@ def process(inlis, plis, flag):
 			return counter
 	return counter
 		
-global_env = {'+' : add, '-' : minus, '*' :  times, '/' : divide, '<': lt, '<=': lte, '>' : gt, '>=' : gte, '=': eq, 'inc' : [['x'], ['+', 'x', 1]], 'null?' : null, 'modulo' : modulo, 'not': no}
+global_env = {'+' : add, '-' : minus, '*' :  times, '/' : divide, '<': lt, '<=': lte, '>' : gt, '>=' : gte, '=': eq, 'inc' : [['x'], ['+', 'x', 1]], 'null?' : null, 'modulo' : modulo, 'not': no, 'display' : disp}
 """
 plus_test = ['+', 1, ['+', 2, 3]]
 minus_test = ['-', 9, ['+', 3, 3]]

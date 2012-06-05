@@ -115,7 +115,7 @@ define = function(expr) {
 			proc.append(expr[1].slice(1));
 			bod = [];
 			bodexp = expr.slice(2);
-			bodlen = (bodexp.length())-1;
+			bodlen = (bodexp.length)-1;
 			for (i=0; i<=bodlen; i++) {
 				bod.append(bodexp[i]);
 			} proc.append(bod);
@@ -136,7 +136,7 @@ make_define_procedure = function(proc) {
 make_procedure = function(exp) {
 	return function(env, succeed, fail) {
 		params = [];
-		for (i=0; i<exp[0].length(); i++) {
+		for (i=0; i<exp[0].length; i++) {
 			params.append(exp[0][i]);
 		} procedure = []
 		procedure.append(params)
@@ -238,7 +238,7 @@ analyze_application = function(expr) {
 };
 
 get_args = function(operands, env, succeed, fail) {
-	len = operands.length();
+	len = operands.length;
 	if (len === 0) {
 		succeed([], fail);
 	} else {
@@ -252,9 +252,9 @@ get_args = function(operands, env, succeed, fail) {
 
 execute_application = function(proc, args, env, succeed, fail){
 	g = function(arg_list, nargs) {
-		if arg_list.length() === 0 { return null; }
+		if arg_list.length === 0 { return null; }
 		else {
-			for (i=0, i<arg_list.length(); i++) {
+			for (i=0, i<arg_list.length; i++) {
 				nargs.append(arg_list[i])
 			} 
 		}
@@ -301,7 +301,7 @@ procedure_param = function(proc) {
 extend_env = function(param_list, args, env) {
 	new_env = {};
 	i = 0;
-	for (n=0; n<param_list.length(); n++) {
+	for (n=0; n<param_list.length; n++) {
 		new_env[param_list[n]] = args[i];
 		i++
 	} new_env['link'] = env;
@@ -310,64 +310,64 @@ extend_env = function(param_list, args, env) {
 
 add = function(e_list) {
 	z = 0;
-	for (i=0; i<e_list.length(); i++) {
+	for (i=0; i<e_list.length; i++) {
 		z += e_list[i];
 	} return z;
 };
 
 minus = function(e_list) {
 	z = e_list[0];
-	for (i=0; i<e_list.slice(1).length(); i++) {
+	for (i=0; i<e_list.slice(1).length; i++) {
 		z -= e_list[i];
 	} return z;
 };
 
 times = function(e_list) {
 	z = 1;
-	for (i=0; i<e_list.length(); i++) {
+	for (i=0; i<e_list.length; i++) {
 		z *= e_list[i];
 	} return z;
 };
 
 divide = function(e_list) {
 	start = e_list[0];
-	for (i=0; i<e_list.length(); i++) {
+	for (i=0; i<e_list.length; i++) {
 		start /= e_list[i];
 	} return start;
 };
 
 modulo = function(e_list) {
-	if (e_list.length() != 2) {
+	if (e_list.length != 2) {
 		return "MODULO ERROR";
 	} return e_list[0] % e_list[1];
 };
 
 gt = function(e_list) {
-	if (e_list.length() != 2) {
+	if (e_list.length != 2) {
 		return "GT ERROR";
 	} return (e_list[0] > e_list[1]);
 };
 
 gte = function(e_list) {
-	if (e_list.length() != 2) {
+	if (e_list.length != 2) {
 		return "GTE ERROR";
 	} return (e_list[0] >= e_list[1]);
 };
 
 lt = function(e_list) {
-	if (e_list.length() != 2) {
+	if (e_list.length != 2) {
 		return "LT ERROR";
 	} return (e_list[0] < e_list[1]);
 };
 	
 lte = function(e_list) {
-	if (e_list.length() != 2) {
+	if (e_list.length != 2) {
 		return "LTE ERROR";
 	} return (e_list[0] <= e_list[1]);
 };
 	
 eq = function(e_list) {
-	if (e_list.length() != 2) {
+	if (e_list.lengt != 2) {
 		return "EQ ERROR";
 	} return (e_list[0] === e_list[1]);
 };
@@ -379,11 +379,11 @@ amb = function(expr) {
 analyze_amb = function(expr) {
 	e_list = expr.slice(1);
 	return function(env, succeed, fail) {
-		if (e_list.length() === 0) {
+		if (e_list.length === 0) {
 			fail();
 		} else {
 			try_next = function(choices) {
-				if (choices.length() == 0) {
+				if (choices.length == 0) {
 					fail();
 				} else {
 					next_choices = choices.slice(1);
@@ -395,7 +395,7 @@ analyze_amb = function(expr) {
 };
 
 no = function(e_list) {
-	if (e_list.length() != 1) { 
+	if (e_list.length != 1) { 
 		ret = "NOT: TAKES ONE ARGUMENT";
 	} else {
 		ret = !e_list[0];
@@ -404,7 +404,7 @@ no = function(e_list) {
 
 lex = function(string) {
 	prev = '';
-	for (i=0; i<string.length(); i++) {
+	for (i=0; i<string.length; i++) {
 		if (string[i] === '(') {
 			charc = '( ';
 			prev = prev + charc;
@@ -422,7 +422,7 @@ parse = function(string) {
 	index = 0;
 	p_list = lex(string);
 	in_list = [];
-	while (p_list.length())	{
+	while (p_list.length)	{
 		index = process(in_list, p_list, true);
 		p_list = p_list.slice(index);
 	} return in_list;
@@ -430,7 +430,7 @@ parse = function(string) {
 
 process = function(inlis, plis, flag) {
 	counter = 0;
-	while (counter < plis.length()) {
+	while (counter < plis.length) {
 		if plis[counter][0] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] {
 			inlis.append(parseFloat(plis[counter]));
 			counter++
@@ -440,7 +440,7 @@ process = function(inlis, plis, flag) {
 		} else if (plis[counter][0] === '(') {
 			inlis.append([]);
 			counter++
-			counter += process(inlis[inlis.length()-1], plis.slice(counter), false);
+			counter += process(inlis[inlis.length-1], plis.slice(counter), false);
 		} else if (plis[counter][0] === ')') {
 			counter++;
 			return counter;
