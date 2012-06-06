@@ -1,7 +1,7 @@
 // A Non-Deterministic Scheme Interpreter //
 
 evaluate = function(exprs, env, succeed, fail) {
-	if (exprs.length > 1:) {
+	if (exprs.length > 1) {
 		analyze_seq(exprs)(env, succeed, fail);
 	} else {
 		analyze_exp(exprs[0])(env, succeed, fail);
@@ -9,16 +9,16 @@ evaluate = function(exprs, env, succeed, fail) {
 };
 
 analyze_seq = function(exprs) {
-	sequentially = function(a, b) {
+	var sequentially = function(a, b) {
 		return function (env, succeed, fail) {
 			a(env, function(a_val, fail2) { b(env, succeed, fail2) }, fail);
 		}
 	};
-	loop = function(first, rest) {
-		if rest.length === 0: return first
+	var loop = function(first, rest) {
+		if (rest.length === 0) { return first }
 		return loop (sequentially(first, rest[0]), rest.slice(1))
 	};
-	procs = exprs.map(analyze_exp);
+	var procs = exprs.map(analyze_exp);
 	return loop(procs[0], procs.slice(1));
 };
 
@@ -35,11 +35,11 @@ analyze_exp = function(expr) {
 	if (cond(expr)) { return analyze_cond(expr) }
 	if (nil(expr)) { return analyze_null(expr) }
 	if (application(expr)) { return analyze_application(expr) }
-	return ("ERROR UNKNOWN EXPRESSION");
+	return ("ERROR UNKNOWN EXPRESSION\n");
 };
 
 isNumber = function (n) {
-	return !isNan(parseFloat(n)) && isFinite(n);
+	return n===+n
 };
 
 self_evaluating = function(expr) {
@@ -68,13 +68,15 @@ variable = function(expr) {
 };
 
 analyze_var = function(expr) {
-	var_cont = function(env, succeed, fail) {
+	var tmp = '';
+	var var_cont = function(env, succeed, fail) {
 		if (expr in env) {
-			succeed(env[expr], fail);
+			tmp = env[expr]; 
+			succeed(tmp, fail);
 		} else if ('link' in env) {
 			var_cont(env['link'], succeed, fail);
 		} else {
-			succeed("ERROR: UNKNOWN VAL", fail);
+			succeed("ERROR: UNKNOWN VAL\n", fail);
 		}
 	};
 	return var_cont;
@@ -86,10 +88,10 @@ assignment = function(expr) {
 
 assign = function(expr) {
 	return function(env, succeed, fail) {
-		val = analyze_exp(expr[2]);
-		variable = expr[1];
+		var val = analyze_exp(expr[2]);
+		var variable = expr[1];
 		val(env, function(value, fail2) {
-				tmp = env[variable];
+				var tmp = env[variable];
 				env[variable] = value;
 				succeed("'OK", function() {
 							env[variable] = tmp;
@@ -104,22 +106,23 @@ definition = function(expr) {
 
 define = function(expr) {
 	return function(env, succeed, fail) {
+		var val = '';
 		if (expr[1] instanceof Array) {
-			name = expr[1][0];
+			var name = expr[1][0];
 		} else {
 			name = expr[1];
-		} if !(expr[1] instanceof Array) {
+		} if (!(expr[1] instanceof Array)) {
 			val = analyze_exp(expr[2])
 		} else {
-			proc = [];
-			proc.append(expr[1].slice(1));
-			bod = [];
-			bodexp = expr.slice(2);
-			bodlen = (bodexp.length)-1;
+			var proc = [];
+			proc.push(expr[1].slice(1));
+			var bod = [];
+			var bodexp = expr.slice(2);
+			var bodlen = (bodexp.length)-1;
 			for (i=0; i<=bodlen; i++) {
-				bod.append(bodexp[i]);
-			} proc.append(bod);
-			val = make_define_procedure(proc);
+				bod.push(bodexp[i]);
+			} proc.push(bod);
+			var val = make_define_procedure(proc);
 		} val(env, function(val, fail2) {
 			env[name] = val;
 			succeed("'OK", fail2);
@@ -135,12 +138,12 @@ make_define_procedure = function(proc) {
 
 make_procedure = function(exp) {
 	return function(env, succeed, fail) {
-		params = [];
+		var params = [];
 		for (i=0; i<exp[0].length; i++) {
-			params.append(exp[0][i]);
+			params.push(exp[0][i]);
 		} procedure = []
-		procedure.append(params)
-		procedure.append(exp.slice(1)) // may contain multiple expressions
+		procedure.push(params)
+		procedure.push(exp.slice(1)) // may contain multiple expressions
 		succeed(procedure, fail);
 	};
 };
@@ -150,9 +153,9 @@ sif = function(expr) {
 };
 
 analyze_if = function(expr) {
-	pred = analyze_exp(expr[1]);
-	consq = analyze_exp(expr[2]);
-	alt = analyze_exp(expr[3]);
+	var pred = analyze_exp(expr[1]);
+	var consq = analyze_exp(expr[2]);
+	var alt = analyze_exp(expr[3]);
 	return function(env, succeed, fail) {
 		pred(env, function(bool, fail2) {
 			if (bool) {
@@ -170,7 +173,7 @@ lamb = function(expr) {
 
 analyze_lambda = function(expr) {
 	return function(env, succeed, fail) {
-		proc = expr.slice(1);
+		var proc = expr.slice(1);
 		make_procedure(proc)(env, succeed, fail);
 	};
 };
@@ -180,22 +183,22 @@ begin = function(expr) {
 };
 
 analyze_begin = function(expr) {
-	exps = expr.slice(1);
-	sequentially = function(a, b) {
+	var exps = expr.slice(1);
+	var sequentially = function(a, b) {
 		return function(env, succeed, fail) {
 			a(env, function(a_value, fail2) {
 				b(env, succeed, fail2);
 			}, fail);
 		};
 	};
-	loop = function(first, rest) {
+	var loop = function(first, rest) {
 		if (rest.length === 0) {
 			return first;
 		} else {
 			return loop(squentially(first, rest[0]), rest.slice(1));
 		}
 	};
-	procs = exps.map(analyze_exp);
+	var procs = exps.map(analyze_exp);
 	return loop(procs[0], procs.slice(1));
 };
 
@@ -211,23 +214,23 @@ nil = function(expr) {
 	return expr[0] === 'null?';
 };
 
-analyze_null = function(expr) {
-	cdr = analyze_exp(expr[1]);
+/*analyze_null = function(expr) {
+	var cdr = analyze_exp(expr[1]);
 	return function(env, succeed, fail) {
 		cdr(env, function(bool, fail2) {
 			ret = (val === []);
 			succeed(ret, fail2);
 		}, fail);
 	};
-};
+}; */
 
 application = function(expr) {
 	return (expr instanceof Array);
 };
 
 analyze_application = function(expr) {
-	operator = analyze_exp(expr[0]);
-	operands = expr.slice(1).map(analyze_exp);
+	var operator = analyze_exp(expr[0]);
+	var operands = expr.slice(1).map(analyze_exp);
 	return function(env, succeed, fail) {
 		operator(env, function(proc, fail2) {
 			get_args(operands, env, function(args, fail3) {
@@ -238,7 +241,7 @@ analyze_application = function(expr) {
 };
 
 get_args = function(operands, env, succeed, fail) {
-	len = operands.length;
+	var len = operands.length;
 	if (len === 0) {
 		succeed([], fail);
 	} else {
@@ -251,15 +254,15 @@ get_args = function(operands, env, succeed, fail) {
 };
 
 execute_application = function(proc, args, env, succeed, fail){
-	g = function(arg_list, nargs) {
-		if arg_list.length === 0 { return null; }
+	var g = function(arg_list, nargs) {
+		if (arg_list.length === 0) { return null; }
 		else {
-			for (i=0, i<arg_list.length; i++) {
-				nargs.append(arg_list[i])
+			for (i=0; i<arg_list.length; i++) {
+				nargs.push(arg_list[i])
 			} 
 		}
 	};
-	new_args = []
+	var new_args = []
 	g(args, new_args)
 	args = new_args;
 	if (primitive_procedure(proc)) {
@@ -288,7 +291,7 @@ get_procedure_body = function(proc) {
 };
 
 procedure_body = function(proc) {
-	body = get_procedure_body(proc);
+	var body = get_procedure_body(proc);
 	return function(env, succeed, fail) {
 		evaluate(body, env, succeed, fail)
 	};
@@ -299,8 +302,8 @@ procedure_param = function(proc) {
 };
 
 extend_env = function(param_list, args, env) {
-	new_env = {};
-	i = 0;
+	var new_env = {};
+	var i = 0;
 	for (n=0; n<param_list.length; n++) {
 		new_env[param_list[n]] = args[i];
 		i++
@@ -309,21 +312,21 @@ extend_env = function(param_list, args, env) {
 };
 
 add = function(e_list) {
-	z = 0;
+	var z = 0;
 	for (i=0; i<e_list.length; i++) {
 		z += e_list[i];
 	} return z;
 };
 
 minus = function(e_list) {
-	z = e_list[0];
+	var z = e_list[0];
 	for (i=0; i<e_list.slice(1).length; i++) {
 		z -= e_list[i];
 	} return z;
 };
 
 times = function(e_list) {
-	z = 1;
+	var z = 1;
 	for (i=0; i<e_list.length; i++) {
 		z *= e_list[i];
 	} return z;
@@ -377,33 +380,34 @@ amb = function(expr) {
 };
 
 analyze_amb = function(expr) {
-	e_list = expr.slice(1);
+	var e_list = expr.slice(1);
 	return function(env, succeed, fail) {
 		if (e_list.length === 0) {
 			fail();
 		} else {
-			try_next = function(choices) {
+			var try_next = function(choices) {
 				if (choices.length == 0) {
 					fail();
 				} else {
-					next_choices = choices.slice(1);
+					var next_choices = choices.slice(1);
 					succeed(choices[0], function() { try_next(next_choices); });
 				}
-			} try_next(e_list);
+			} 
+			try_next(e_list);
 		}
 	};
 };
 
 no = function(e_list) {
 	if (e_list.length != 1) { 
-		ret = "NOT: TAKES ONE ARGUMENT";
+		var ret = "NOT: TAKES ONE ARGUMENT";
 	} else {
 		ret = !e_list[0];
 	} return ret;
 };
 
 lex = function(string) {
-	prev = '';
+	var prev = '', charc = '';
 	for (i=0; i<string.length; i++) {
 		if (string[i] === '(') {
 			charc = '( ';
@@ -412,35 +416,35 @@ lex = function(string) {
 			charc = ' )';
 			prev = prev + charc;
 		} else {
-			prev = prev + charc;
+			prev = prev + string[i];
 		}
 	} string = prev.split();
 	return string;
 };
 
 parse = function(string) {
-	index = 0;
-	p_list = lex(string);
+	var index = 0,
+	p_list = lex(string),
 	in_list = [];
 	while (p_list.length)	{
-		index = process(in_list, p_list, true);
+		index = proceed(in_list, p_list, true);
 		p_list = p_list.slice(index);
 	} return in_list;
 };
 
-process = function(inlis, plis, flag) {
-	counter = 0;
+proceed = function(inlis, plis, flag) {
+	var counter = 0;
 	while (counter < plis.length) {
-		if plis[counter][0] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] {
-			inlis.append(parseFloat(plis[counter]));
+		if (plis[counter][0] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']) {
+			inlis.push(parseFloat(plis[counter]));
 			counter++
 		} else if (plis[counter][0] != '(' && plis[counter][0] != ')') {
-			inlis.append(plis[counter]);
+			inlis.push(plis[counter]);
 			counter++
 		} else if (plis[counter][0] === '(') {
-			inlis.append([]);
+			inlis.push([]);
 			counter++
-			counter += process(inlis[inlis.length-1], plis.slice(counter), false);
+			counter += proceed(inlis[inlis.length-1], plis.slice(counter), false);
 		} else if (plis[counter][0] === ')') {
 			counter++;
 			return counter;
@@ -449,3 +453,37 @@ process = function(inlis, plis, flag) {
 };
 
 global_env = {'+': add, '-': minus, '*': times, '/': divide, '<': lt, '<=': lte, '>': gt, '>=': gte, '=': eq, 'null?': nil, 'modulo': modulo, 'not': no};
+
+driver = function() {
+	var stdin = process.stdin, stdout = process.stdout;
+	var succeed = function(val, alt) {
+		val = String(val);
+		val = val + '\n';
+		stdout.write(val);
+		internal_loop(alt);
+	};
+	var fail = function() {
+		stdout.write(";;; There are no more values ;;;\n");
+		driver();
+	};
+	var internal_loop = function(try_again) {
+		stdin.resume();
+		stdin.write("ND_S => ");
+		stdin.once('data', function(data) {
+			data = data.toString().trim();
+			if (data === 'try-again') { try_again(); }
+			else {
+				stdout.write(";;; Starting A New Problem ;;;\n");
+				feed = parse(data);
+				evaluate(feed, global_env, succeed, fail);
+			}
+		});
+	}; 
+	var init = function() {
+		stdout.write(";;; There is no problem to solve ;;;\n");
+		driver();
+	};
+	internal_loop(init);
+};
+
+driver();

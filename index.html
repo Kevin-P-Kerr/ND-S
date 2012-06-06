@@ -1,11 +1,142 @@
 <!DOCTYPE html>
-
+<html>
 <head>
-	<title> ND-S </title>
-	
-</head>
+	<style>
+		html, body{
+			height: 100%;
+		}
+		html{
+			font: 24px monospace;
+		}
+		body{
+			margin: 0;
+		}
+		#output{
+			list-style: none;
+			padding: 0;
+			margin: 0;
+		}
+		#output>li{
+			padding: 0.3em 0.5em 0.3em 1.5em;
+			border-bottom: 1px solid #CCC;
+		}
+		#output>li.input{
+			color: blue;
+		}#output>li.output{
+			font-weight: bold;
+		}#output>li.error{
+			color: red;
+		}
+		#inputText{
+			display: inline-block;
+			background: none;
+			font: inherit;
+			border: none;
+			width: 100%;
+			padding: 0.3em, 0.5em, 0.3em, 1.5em;
+			outline: none;
+			box-sizing: border-box;
+		}#input::before{
+			content: '>';
+			display: block;
+			margin: 0.3em. 0.5em;
+			position: absolute;
+		}
+		</style>
+	</head>
 <body>
-	<p> ND-S </p>
+	<ul id="output"></ul>
+	<div id="input">
+		<textarea id="inputText" rows=1></textarea>
+	</div>
 	<script langauge="javascript" src="./index.js"> </script>
+	<script>
+		function keepHistory(input, storageKey) {
+			var permanentHistory =storageKey in sessionStorage ? JSON.parse(sessionStorage[storageKey]) : [],
+		typed = ' ',
+		i = history.length;
+		input.addEventListener('keydown', function (e) {
+			switch(e.keyCode) {
+			case 13:
+				if (input.value) {
+					i = permanentHistory.push(input.value);
+					sessionStorage[storageKey] = JSON.stringify(permanentHistory);
+					history = permanentHistory.slice();
+					typed = '';
+				} e.preventDefault();
+				break;
+			case 38: // Up
+				if (i > 0 && history.length) {
+					if (i === history.length) {
+						typed = input.value;
+					} else {
+						history[i] = input.value;
+					}
+					input.value = history[--i];
+				}
+				e.preventDefault();
+				break;
+				case 40:
+					if (i < history.length -1) {
+						history[i] = input.value;
+						input.value = history[++i];
+					} else if (i===history.length - 1) {
+						i++;
+						input.value = typed;
+					}
+					e.preventDefault();
+					break;
+				}
+			}, false);
+		};
+		var replHistory = {
+			el: document.getElementById('output'),
+			log: function(className, text) {
+				var msgEl = document.createElement('li');
+				msgEl.className = className;
+				msgEl.appendChild(document.createTextNode(text));
+				this.el.appendChild(msgEl);
+			}
+		};
+		var outputList = document.getElementById('output'),
+			commandLine = document.getElementById('inputText');
+		var driver = function() {
+			var succeed = function(val, alt) {
+				replHistory.log('output', val);
+				internal_loop(alt);
+			};
+			var fail() {
+				replHistory.log('output', 'there are no more values');
+				driver();
+			
+		keepHistory(commandLine, 'input-history');
+		commandLine.addEventListener('keydown', function(e){
+			if (e.keyCode === 13) {
+				if (commandLine.value) {
+					replHistory.log('input', commandLine.value);
+					try {
+						evaluator.parse(commandLine.value).forEach(function(expr){
+							var result = evaluator.evaluate(new evaluator.List(expr, null))
+							if (result !== undefined) {
+								replHistory.log('output', evaluator.exprToString(result));
+							}
+						});
+					} catch (e) {
+						replHistory.log('error', e);
+					}
+					commandLine.value = '';
+					// Scroll window to bottom
+					window.scrollTo(window.scrollX, document.documentElement.scrollHeight - document.documentElement.clientHeight);
+				}
+				e.preventDefault();
+			}
+		});
+		// Focus the command line when clicking on an empty area of body
+		document.body.addEventListener('click', function(e){
+			if (e.target === document.body){
+				commandLine.focus();
+			}
+		});
+	</script>
 </body>
-
+</html>
