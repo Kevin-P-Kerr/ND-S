@@ -53,7 +53,7 @@ self_eval = function(expr) {
 };
 
 quoted = function(expr) {
-	return (expr[0] === 'quoted');
+	return (expr[0] === 'quote');
 };
 
 quote = function(expr) {
@@ -258,7 +258,11 @@ execute_application = function(proc, args, env, succeed, fail){
 		if (arg_list.length === 0) { return null; }
 		else {
 			for (i=0; i<arg_list.length; i++) {
+				if (arg_list[i] instanceof Array) {
+					g(arg_list[i], nargs);
+				} else {
 				nargs.push(arg_list[i])
+				}
 			} 
 		}
 	};
@@ -406,6 +410,19 @@ no = function(e_list) {
 	} return ret;
 };
 
+partition = function(string) {
+	var retarr = [];
+	var tmp = string.split(' ');
+	for (i=0; i<tmp.length; i++) {
+		if (tmp[i] === ' ') {
+			continue;
+		} else {
+			retarr.push(tmp[i]);
+		}
+	}
+	return retarr;
+};
+
 lex = function(string) {
 	var prev = '', charc = '';
 	for (i=0; i<string.length; i++) {
@@ -418,7 +435,7 @@ lex = function(string) {
 		} else {
 			prev = prev + string[i];
 		}
-	} string = prev.split();
+	} string = partition(prev);
 	return string;
 };
 
@@ -448,8 +465,8 @@ proceed = function(inlis, plis, flag) {
 		} else if (plis[counter][0] === ')') {
 			counter++;
 			return counter;
-		} return counter;
-	}
+		}
+	} return counter;
 };
 
 global_env = {'+': add, '-': minus, '*': times, '/': divide, '<': lt, '<=': lte, '>': gt, '>=': gte, '=': eq, 'null?': nil, 'modulo': modulo, 'not': no};
