@@ -1,8 +1,7 @@
 # ND-S: A Non-Deterministic Scheme Interpeter #
 
 ## What It Is ##
-	ND-S is a Scheme interpreter that supports chronological backtracking through a special form called amb.
-For example, we can open the REPL and type the following:
+ND-S is a Scheme interpreter that supports chronological backtracking through a special form called amb. For example, we can open the REPL and type the following:
 
 		ND-S => (amb 1 2 3)
 		1
