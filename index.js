@@ -34,6 +34,9 @@ analyze_exp = function(expr) {
 	if (begin(expr)) { return analyze_begin(expr) }
 	if (cond(expr)) { return analyze_cond(expr) }
 	if (nil(expr)) { return analyze_null(expr) }
+	if (s_car(expr)) { return analyze_car(expr) }
+	if (s_cdr(expr)) { return analyze_cdr(expr) }
+	if (cons(expr)) { return analyze_cons(expr) }
 	if (application(expr)) { return analyze_application(expr) }
 	return ("ERROR UNKNOWN EXPRESSION\n");
 };
@@ -214,15 +217,61 @@ nil = function(expr) {
 	return expr[0] === 'null?';
 };
 
-/*analyze_null = function(expr) {
+analyze_null = function(expr) {
 	var cdr = analyze_exp(expr[1]);
 	return function(env, succeed, fail) {
-		cdr(env, function(bool, fail2) {
-			ret = (val === []);
+		cdr(env, function(val, fail2) {
+			ret = (val[0] === '');
 			succeed(ret, fail2);
 		}, fail);
 	};
-}; */
+};
+
+analyze_cdr = function(expr) {
+	body = analyze_exp(expr[1]);
+
+	return function(env, succeed, fail) {
+		body(env, function(val, fail2) {
+			succeed(val.slice(1), fail2);
+		}, fail);
+	};
+};
+
+s_cdr = function(expr) {
+	return expr[0] === 'cdr';
+};
+
+s_car = function(expr) {
+	return expr[0] === 'car';
+};
+
+analyze_car = function(expr) {
+	var body = analyze_exp(expr[1]);
+	
+	return function(env, succeed, fail) {
+		body(env, function(val, fail2) {
+			succeed(val[0], fail2);
+		}, fail);
+	};
+};
+
+cons = function(expr) {
+	return expr[0] === 'cons';
+};
+
+analyze_cons = function(expr) {
+	var body = expr.slice(1).map(analyze_exp);
+	return function(env, succeed, fail) {
+		body[0](env, function(val, fail2) {
+			body[1](env, function(val1, fail3) {
+				ret_list = [];
+				ret_list.push(val);
+				ret_list.push(val1);
+				succeed(ret_list, fail3);
+			}, fail2);
+		}, fail);
+	};
+};
 
 application = function(expr) {
 	return (expr instanceof Array);
