@@ -374,7 +374,7 @@ add = function(e_list) {
 minus = function(e_list) {
 	var z = e_list[0];
 	for (i=0; i<e_list.slice(1).length; i++) {
-		z -= e_list[i];
+		z -= e_list.slice(1)[i];
 	} return z;
 };
 
@@ -423,7 +423,7 @@ lte = function(e_list) {
 };
 	
 eq = function(e_list) {
-	if (e_list.lengt != 2) {
+	if (e_list.length != 2) {
 		return "EQ ERROR";
 	} return (e_list[0] === e_list[1]);
 };
