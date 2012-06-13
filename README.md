@@ -34,8 +34,10 @@ During the evaluation process, the interpter passes around two continuations, on
 
 *Why are there two versions?*
 
- ND-S was originally written in Python; however, due to the recursive nature of the interpterter, it will quickly cause Python to either reach it's recursion limit or segfault.  The Javascript version performs a little better, but still runs into its recursion limit fairly quickly.
+ ND-S was originally written in Python; however, due to the recursive nature of the interpterter, it will quickly cause Python to either reach it's recursion limit or segfault.  The Javascript version performs a little better, but still runs into its recursion limit fairly quickly. For both versions, the recursion limit rests somewhere between 70 and 80 calls.
 
 *Is this a complete implementation of Scheme?*
 
-No.  As of this writing, cons, car, cdr, and null? remain to be implemented, as well as let expressions.  These will hopefully be forthcoming.
+~~No.  As of this writing, cons, car, cdr, and null? remain to be implemented, as well as let expressions.  These will hopefully be forthcoming.~~
+
+Cons, car, cdr, and null? have been implemented in the JS version. 
