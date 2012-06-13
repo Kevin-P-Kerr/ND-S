@@ -17,7 +17,7 @@ import sys
 
 rl = sys.getrecursionlimit()
 
-#sys.setrecursionlimit(10*rl)
+sys.setrecursionlimit(20*rl)
 #### The Interpterter ####
 
 from numbers import Number
