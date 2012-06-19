@@ -312,7 +312,7 @@ analyze_list = function(expr) {
 			} else { // all the values have been pushed to ret_list
 				make_list(succeed, fail2, ret_list);
 			}
-			}, fail)
+		}, fail)
 	};
 };
 
