@@ -50,6 +50,7 @@ analyze_exp = function(expr) {
 	if (s_car(expr)) { return analyze_car(expr) }
 	if (s_cdr(expr)) { return analyze_cdr(expr) }
 	if (cons(expr)) { return analyze_cons(expr) }
+	if (list(expr)) { return analyze_list(expr) }
 	if (application(expr)) { return analyze_application(expr) }
 	return ("ERROR UNKNOWN EXPRESSION\n");
 };
@@ -241,11 +242,11 @@ analyze_null = function(expr) {
 };
 
 analyze_cdr = function(expr) {
-	body = analyze_exp(expr[1]);
+	var body = analyze_exp(expr[1]);
 
 	return function(env, succeed, fail) {
 		body(env, function(val, fail2) {
-			succeed(val.slice(1), fail2);
+			succeed(val.slice(1)[0], fail2);
 		}, fail);
 	};
 };
@@ -284,6 +285,50 @@ analyze_cons = function(expr) {
 			}, fail2);
 		}, fail);
 	};
+};
+
+list = function(expr) {
+	return expr[0] === 'list';
+};
+
+analyze_list = function(expr) {
+	var body = expr.slice(1).map(analyze_exp);
+	var ret_list = [];
+	var list_cont = function(val, fail2) {
+		body = body.slice(1);
+		ret_list.push(val);
+		if (body.length) {
+			body[0](env, list_cont, fail2);
+		} else { // all the values have been pushed to ret_list
+			make_list(succeed, fail2, ret_list);
+		}
+	};
+	return function(env, succeed, fail) {
+		body[0](env, function list_cont (val, fail2) {
+			body = body.slice(1);
+			ret_list.push(val);
+			if (body.length) {
+				body[0](env, list_cont, fail2);
+			} else { // all the values have been pushed to ret_list
+				make_list(succeed, fail2, ret_list);
+			}
+			}, fail)
+	};
+};
+
+make_list = function(succeed, fail, pre_list) {
+	var helper = function(prep_list, final_list) {
+		if (prep_list.length) {
+			final_list.push(prep_list[0]);
+			final_list.push([]);
+			helper(prep_list.slice(1), final_list[final_list.length-1]);
+		} else {
+			final_list.push(''); // this makes the representation of null consistent with the value produced when (quote ()) is evaluated
+		}
+	};
+	var ret_list = [];
+	helper(pre_list, ret_list);
+	succeed(ret_list, fail);
 };
 
 application = function(expr) {

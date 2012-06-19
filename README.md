@@ -40,4 +40,4 @@ During the evaluation process, the interpter passes around two continuations, on
 
 ~~No.  As of this writing, cons, car, cdr, and null? remain to be implemented, as well as let expressions.  These will hopefully be forthcoming.~~
 
-Cons, car, cdr, and null? have been implemented in the JS version. 
+Cons, car, cdr, list and null? have been implemented in the JS version.
