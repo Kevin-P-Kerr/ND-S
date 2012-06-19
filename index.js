@@ -13,6 +13,7 @@ This program is free software: you can redistribute it and/or modify
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
+// the interpreter
 evaluate = function(exprs, env, succeed, fail) {
 	if (exprs.length > 1) {
 		analyze_seq(exprs)(env, succeed, fail);
@@ -578,6 +579,7 @@ proceed = function(inlis, plis, flag) {
 
 global_env = {'+': add, '-': minus, '*': times, '/': divide, '<': lt, '<=': lte, '>': gt, '>=': gte, '=': eq, 'null?': nil, 'modulo': modulo, 'not': no};
 
+// the driver loop
 driver = function() {
 	var stdin = process.stdin, stdout = process.stdout;
 	var succeed = function(val, alt) {
