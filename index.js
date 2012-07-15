@@ -293,28 +293,27 @@ list = function(expr) {
 };
 
 analyze_list = function(expr) {
-	var body = expr.slice(1).map(analyze_exp);
-	var ret_list = [];
-	var list_cont = function(val, fail2) {
-		body = body.slice(1);
-		ret_list.push(val);
-		if (body.length) {
-			body[0](env, list_cont, fail2);
-		} else { // all the values have been pushed to ret_list
-			make_list(succeed, fail2, ret_list);
-		}
-	};
-	return function(env, succeed, fail) {
-		body[0](env, function list_cont (val, fail2) {
-			body = body.slice(1);
-			ret_list.push(val);
-			if (body.length) {
-				body[0](env, list_cont, fail2);
-			} else { // all the values have been pushed to ret_list
-				make_list(succeed, fail2, ret_list);
-			}
-		}, fail)
-	};
+	var new_expr = [];
+	var i;
+	var handler = new_expr;
+
+	new_expr.push(expr[0]);
+	expr.shift();
+	new_expr.push(expr[0]);
+	expr.shift();
+
+	for (i=0; i<expr.length; i++) {
+		new_expr.push([])
+		new_expr[new_expr.length-1].push('cons');
+		new_expr[new_expr.length-1].push(expr[i]);
+		new_expr = new_expr[new_expr.length-1];
+	} new_expr.push([]);
+	new_expr = new_expr[new_expr.length-1];
+	new_expr.push('quote');
+	new_expr.push([]);
+	new_expr = new_expr[new_expr.length-1];
+	new_expr.push('');
+	return analyze_cons(handler);
 };
 
 make_list = function(succeed, fail, pre_list) {
@@ -328,7 +327,9 @@ make_list = function(succeed, fail, pre_list) {
 		}
 	};
 	var ret_list = [];
+	var n;
 	helper(pre_list, ret_list);
+	pre_list.pop();
 	succeed(ret_list, fail);
 };
 
